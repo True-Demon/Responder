@@ -1,6 +1,6 @@
-# Responder.py #
+# Responder/MultiRelay #
 
-LLMNR/NBT-NS/mDNS Poisoner
+LLMNR/NBT-NS/mDNS Poisoner and NTLMv1/2 Relay.
 
 Author: Laurent Gaffie <laurent.gaffie@gmail.com >  https://g-laurent.blogspot.com
 
@@ -168,9 +168,22 @@ You can contribute to this project by donating to the following BTC address:
 
 1Pv9rZMNfy9hsW19eQhNGs22gY9sf6twjW
 
-Or via Paypal:
 
-[![donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=F7UDPDKM65Q7A)
+## Acknowledgments ##
+
+Late Responder development has been possible because of the donations received from individuals and companies.
+
+We would like to thanks those major donator:
+
+- SecureWorks : https://www.secureworks.com/
+
+- Black Hills Information Security: http://www.blackhillsinfosec.com/
+
+- TrustedSec: https://www.trustedsec.com/
+
+- And all, ALL the pentesters around the world who donated to this project.
+
+Thank you.
 
 ## Copyright ##
 

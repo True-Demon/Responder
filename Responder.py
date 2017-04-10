@@ -62,6 +62,9 @@ settings.Config.ExpandIPRanges()
 if settings.Config.AnalyzeMode:
 	print color('[i] Responder is in analyze mode. No NBT-NS, LLMNR, MDNS requests will be poisoned.', 3, 1)
 
+#Create the DB, before we start Responder.
+CreateResponderDb()
+
 class ThreadingUDPServer(ThreadingMixIn, UDPServer):
 	def server_bind(self):
 		if OsInterfaceIsSupported():
@@ -238,7 +241,7 @@ def main():
 			threads.append(Thread(target=serve_thread_tcp, args=('', 80, HTTP,)))
 
 		if settings.Config.SSL_On_Off:
-			from servers.HTTP import HTTPS
+			from servers.HTTP import HTTP
 			threads.append(Thread(target=serve_thread_SSL, args=('', 443, HTTP,)))
 
 		if settings.Config.WPAD_On_Off:
