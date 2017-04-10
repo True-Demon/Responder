@@ -14,6 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import platform
 import re,sys,socket,struct
 import multiprocessing
 from socket import *
@@ -22,6 +23,7 @@ from odict import OrderedDict
 
 __version__ = "0.7"
 
+isWin = platform.system() == 'Windows'
 Timeout = 2
 
 class Packet():
@@ -126,7 +128,10 @@ class SMBNegoDataLanMan(Packet):
 #####################
 
 def color(txt, code = 1, modifier = 0):
-	return "\033[%d;3%dm%s\033[0m" % (modifier, code, txt)
+    if isWin:
+        return txt
+    else:
+        return "\033[%d;3%dm%s\033[0m" % (modifier, code, txt)
 
 def IsSigningEnabled(data): 
     if data[39] == "\x0f":
