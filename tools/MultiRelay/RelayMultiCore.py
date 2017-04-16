@@ -24,6 +24,7 @@ import re
 import datetime
 import threading
 import uuid
+import traceback
 from RelayMultiPackets import *
 from odict import OrderedDict
 from base64 import b64decode, b64encode
@@ -1895,9 +1896,10 @@ def RunCmd(data, s, clientIP, Username, Domain, Command, Logs, Host, RunPath, Fi
 
        return data
 
-    except:
+    except Exception as e:
        #Don't loose this connection because something went wrong, it's a good one. Commands might fail, while hashdump works.
-       print "[+] Something went wrong, try something else."
+       print "[+] Something went wrong, try something else. Exception data: " + str(e)
+       traceback.print_exc()
        return ModifySMBRetCode(data)
 
 ##########Runas#############
