@@ -14,34 +14,59 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-import optparse
+from utils import *  # Contains sys, re, os, time, logging, socket, setting, and datetime libraries
+
+import argparse
 import ssl
 
 from SocketServer import TCPServer, UDPServer, ThreadingMixIn
 from threading import Thread
-from utils import *
 import struct
 banner()
 
-parser = optparse.OptionParser(usage='python %prog -I eth0 -w -r -f\nor:\npython %prog -I eth0 -wrf', version=settings.__version__, prog=sys.argv[0])
-parser.add_option('-A','--analyze',        action="store_true", help="Analyze mode. This option allows you to see NBT-NS, BROWSER, LLMNR requests without responding.", dest="Analyze", default=False)
-parser.add_option('-I','--interface',      action="store",      help="Network interface to use, you can use 'ALL' as a wildcard for all interfaces", dest="Interface", metavar="eth0", default=None)
-parser.add_option('-i','--ip',             action="store",      help="Local IP to use \033[1m\033[31m(only for OSX)\033[0m", dest="OURIP", metavar="10.0.0.21", default=None)
+parser = argparse.ArgumentParser(usage='python %prog -I eth0 -w -r -f\nor:\npython %prog -I eth0 -wrf',
+                                 version=settings.__version__, prog=sys.argv[0])
+parser.add_argument('-A', '--analyze', action="store_true",
+                    help="Analyze mode. This option allows you to see NBT-NS, BROWSER, LLMNR requests without responding.",
+                    dest="Analyze", default=False)
+parser.add_argument('-I', '--interface', action="store",
+                    help="Network interface to use, you can use 'ALL' as a wildcard for all interfaces",
+                    dest="Interface", metavar="eth0", default=None)
+parser.add_argument('-i', '--ip', action="store", help="Local IP to use \033[1m\033[31m(only for OSX)\033[0m",
+                    dest="OURIP", metavar="10.0.0.21", default=None)
 
-parser.add_option('-e', "--externalip",    action="store",      help="Poison all requests with another IP address than Responder's one.", dest="ExternalIP",  metavar="10.0.0.22", default=None)
+parser.add_argument('-e', "--externalip", action="store",
+                    help="Poison all requests with another IP address than Responder's one.", dest="ExternalIP",
+                    metavar="10.0.0.22", default=None)
 
-parser.add_option('-b', '--basic',         action="store_true", help="Return a Basic HTTP authentication. Default: NTLM", dest="Basic", default=False)
-parser.add_option('-r', '--wredir',        action="store_true", help="Enable answers for netbios wredir suffix queries. Answering to wredir will likely break stuff on the network. Default: False", dest="Wredirect", default=False)
-parser.add_option('-d', '--NBTNSdomain',   action="store_true", help="Enable answers for netbios domain suffix queries. Answering to domain suffixes will likely break stuff on the network. Default: False", dest="NBTNSDomain", default=False)
-parser.add_option('-f','--fingerprint',    action="store_true", help="This option allows you to fingerprint a host that issued an NBT-NS or LLMNR query.", dest="Finger", default=False)
-parser.add_option('-w','--wpad',           action="store_true", help="Start the WPAD rogue proxy server. Default value is False", dest="WPAD_On_Off", default=False)
-parser.add_option('-u','--upstream-proxy', action="store",      help="Upstream HTTP proxy used by the rogue WPAD Proxy for outgoing requests (format: host:port)", dest="Upstream_Proxy", default=None)
-parser.add_option('-F','--ForceWpadAuth',  action="store_true", help="Force NTLM/Basic authentication on wpad.dat file retrieval. This may cause a login prompt. Default: False", dest="Force_WPAD_Auth", default=False)
+parser.add_argument('-b', '--basic', action="store_true", help="Return a Basic HTTP authentication. Default: NTLM",
+                    dest="Basic", default=False)
+parser.add_argument('-r', '--wredir', action="store_true",
+                    help="Enable answers for netbios wredir suffix queries. Answering to wredir will likely break stuff on the network. Default: False",
+                    dest="Wredirect", default=False)
+parser.add_argument('-d', '--NBTNSdomain', action="store_true",
+                    help="Enable answers for netbios domain suffix queries. Answering to domain suffixes will likely break stuff on the network. Default: False",
+                    dest="NBTNSDomain", default=False)
+parser.add_argument('-f', '--fingerprint', action="store_true",
+                    help="This option allows you to fingerprint a host that issued an NBT-NS or LLMNR query.",
+                    dest="Finger", default=False)
+parser.add_argument('-w', '--wpad', action="store_true",
+                    help="Start the WPAD rogue proxy server. Default value is False", dest="WPAD_On_Off", default=False)
+parser.add_argument('-u', '--upstream-proxy', action="store",
+                    help="Upstream HTTP proxy used by the rogue WPAD Proxy for outgoing requests (format: host:port)",
+                    dest="Upstream_Proxy", default=None)
+parser.add_argument('-F', '--ForceWpadAuth', action="store_true",
+                    help="Force NTLM/Basic authentication on wpad.dat file retrieval. This may cause a login prompt. Default: False",
+                    dest="Force_WPAD_Auth", default=False)
 
-parser.add_option('-P','--ProxyAuth',       action="store_true", help="Force NTLM (transparently)/Basic (prompt) authentication for the proxy. WPAD doesn't need to be ON. This option is highly effective when combined with -r. Default: False", dest="ProxyAuth_On_Off", default=False)
+parser.add_argument('-P', '--ProxyAuth', action="store_true",
+                    help="Force NTLM (transparently)/Basic (prompt) authentication for the proxy. WPAD doesn't need to be ON. This option is highly effective when combined with -r. Default: False",
+                    dest="ProxyAuth_On_Off", default=False)
 
-parser.add_option('--lm',                  action="store_true", help="Force LM hashing downgrade for Windows XP/2003 and earlier. Default: False", dest="LM_On_Off", default=False)
-parser.add_option('-v','--verbose',        action="store_true", help="Increase verbosity.", dest="Verbose")
+parser.add_argument('--lm', action="store_true",
+                    help="Force LM hashing downgrade for Windows XP/2003 and earlier. Default: False", dest="LM_On_Off",
+                    default=False)
+parser.add_argument('-v', '--verbose', action="store_true", help="Increase verbosity.", dest="Verbose")
 options, args = parser.parse_args()
 
 if not os.geteuid() == 0:
