@@ -19,24 +19,23 @@ import sys
 import re
 import logging
 import socket
-import time
 import settings
 import datetime
 
 def RandomChallenge():
-    if settings.Config.NumChal == "random":
-       from random import getrandbits
-       NumChal = '%016x' % getrandbits(16 * 4)
-       Challenge = ''
-       for i in range(0, len(NumChal),2):
-	   Challenge += NumChal[i:i+2].decode("hex")
-       return Challenge
-    else:
-       return settings.Config.Challenge
+	if settings.Config.NumChal == "random":
+		from random import getrandbits
+		NumChal = '%016x' % getrandbits(16 * 4)
+		Challenge = ''
+		for i in range(0, len(NumChal), 2):
+			Challenge += NumChal[i:i + 2].decode("hex")
+		return Challenge
+	else:
+		return settings.Config.Challenge
 
 def HTTPCurrentDate():
-    Date = datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
-    return Date
+	Date = datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')
+	return Date
 try:
 	import sqlite3
 except:
@@ -54,8 +53,8 @@ def color(txt, code = 1, modifier = 0):
 	return "\033[%d;3%dm%s\033[0m" % (modifier, code, txt)
 
 def text(txt):
-        stripcolors = re.sub(r'\x1b\[([0-9,A-Z]{1,2}(;[0-9]{1,2})?(;[0-9]{3})?)?[m|K]?', '', txt)
-        logging.info(stripcolors)
+	stripcolors = re.sub(r'\x1b\[([0-9,A-Z]{1,2}(;[0-9]{1,2})?(;[0-9]{3})?)?[m|K]?', '', txt)
+	logging.info(stripcolors)
 	if os.name == 'nt':
 		return txt
 	return '\r' + re.sub(r'\[([^]]*)\]', "\033[1;34m[\\1]\033[0m", txt)
@@ -94,10 +93,10 @@ def RespondToThisHost(ClientIp, Name):
 	return RespondToThisIP(ClientIp) and RespondToThisName(Name)
 
 def RespondWithIPAton():
-       if settings.Config.ExternalIP:
-               return settings.Config.ExternalIPAton
-       else:
-               return settings.Config.IP_aton
+	if settings.Config.ExternalIP:
+		return settings.Config.ExternalIPAton
+	else:
+		return settings.Config.IP_aton
 
 def OsInterfaceIsSupported():
 	if settings.Config.Interface != "Not set":
@@ -126,7 +125,8 @@ def FindLocalIP(Iface, OURIP):
 		print color("[!] Error: %s: Interface not found" % Iface, 1)
 		sys.exit(-1)
 
-# Function used to write captured hashs to a file.
+
+# Function used to write captured hashes to a file.
 def WriteData(outfile, data, user):
 	logging.info("[*] Captured Hash: %s" % data)
 	if not os.path.isfile(outfile):
@@ -175,7 +175,7 @@ def SaveToDb(result):
 	cursor.text_factory = sqlite3.Binary  # We add a text factory to support different charsets
 	res = cursor.execute("SELECT COUNT(*) AS count FROM responder WHERE module=? AND type=? AND client=? AND LOWER(user)=LOWER(?)", (result['module'], result['type'], result['client'], result['user']))
 	(count,) = res.fetchone()
-        
+
 	if not count:
 		with open(logfile,"a") as outf:
 			if len(result['cleartext']):  # If we obtained cleartext credentials, write them to file
@@ -186,12 +186,13 @@ def SaveToDb(result):
 		cursor.execute("INSERT INTO responder VALUES(datetime('now'), ?, ?, ?, ?, ?, ?, ?, ?)", (result['module'], result['type'], result['client'], result['hostname'], result['user'], result['cleartext'], result['hash'], result['fullhash']))
 		cursor.commit()
 
-        if settings.Config.CaptureMultipleHashFromSameHost:
-		with open(logfile,"a") as outf:
-			if len(result['cleartext']):  # If we obtained cleartext credentials, write them to file
-				outf.write('%s:%s\n' % (result['user'].encode('utf8', 'replace'), result['cleartext'].encode('utf8', 'replace')))
-			else:  # Otherwise, write JtR-style hash string to file
-				outf.write(result['fullhash'].encode('utf8', 'replace') + '\n')
+		if settings.Config.CaptureMultipleHashFromSameHost:
+			with open(logfile, "a") as outf:
+				if len(result['cleartext']):  # If we obtained cleartext credentials, write them to file
+					outf.write('%s:%s\n' % (
+					result['user'].encode('utf8', 'replace'), result['cleartext'].encode('utf8', 'replace')))
+				else:  # Otherwise, write JtR-style hash string to file
+					outf.write(result['fullhash'].encode('utf8', 'replace') + '\n')
 
 	if not count or settings.Config.Verbose:  # Print output
 		if len(result['client']):
@@ -235,7 +236,7 @@ def SavePoisonersToDb(result):
 	cursor.text_factory = sqlite3.Binary  # We add a text factory to support different charsets
 	res = cursor.execute("SELECT COUNT(*) AS count FROM Poisoned WHERE Poisoner=? AND SentToIp=? AND ForName=? AND AnalyzeMode=?", (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode']))
 	(count,) = res.fetchone()
-        
+
 	if not count:
 		cursor.execute("INSERT INTO Poisoned VALUES(datetime('now'), ?, ?, ?, ?)", (result['Poisoner'], result['SentToIp'], result['ForName'], result['AnalyzeMode']))
 		cursor.commit()
