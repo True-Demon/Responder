@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from utils import *  # Contains sys, re, os, time, logging, socket, setting, and datetime libraries
+from time import sleep
 
 import argparse
 import ssl
@@ -156,9 +157,9 @@ class ThreadingUDPLLMNRServer(ThreadingMixIn, UDPServer):
 		
 		if OsInterfaceIsSupported():
 			try:
-                                if settings.Config.Bind_To_ALL:
-                                	pass
-                                else:
+				if settings.Config.Bind_To_ALL:
+					pass
+				else:
 					self.socket.setsockopt(socket.SOL_SOCKET, 25, settings.Config.Interface+'\0')
 			except:
 				pass
@@ -192,8 +193,8 @@ def serve_LLMNR_poisoner(host, port, handler):
 		server = ThreadingUDPLLMNRServer((host, port), handler)
 		server.serve_forever()
 	except:
-                raise
 		print color("[!] ", 1, 1) + "Error starting UDP server on port " + str(port) + ", check permissions or other servers running."
+		raise
 
 def serve_thread_udp(host, port, handler):
 	try:
@@ -329,7 +330,7 @@ def main():
 		print color('[+]', 2, 1) + " Listening for events..."
 
 		while True:
-			time.sleep(1)
+			sleep(1)  #
 
 	except KeyboardInterrupt:
 		sys.exit("\r%s Exiting..." % color('[+]', 2, 1))

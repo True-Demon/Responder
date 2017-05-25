@@ -19,7 +19,6 @@ import sys
 import re
 import logging
 import socket
-import time
 import settings
 import datetime
 
